@@ -125,6 +125,8 @@ function Format-Log ([array] $logArray)
 
 ################################# Start Main Program #########################################
 
+#Create log file in verbose mode
+winget list -s winget --verbose-logs > $null
 
 #Get last created winget log.
 $logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\WinGet-*" |
