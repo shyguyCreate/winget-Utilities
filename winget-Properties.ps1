@@ -35,7 +35,8 @@ $skipHyphenIndex = $hyphenIndex + 1
 $lastIndex = $tmpFileContent.Length - 1
 
 #Saves the Properties line to later add everything below except for the hyphen line.
-$newContent = $tmpFileContent[$propertiesIndex,$skipHyphenIndex..$lastIndex]
+[array] $newContent = $tmpFileContent[$propertiesIndex]
+$newContent += $tmpFileContent[$skipHyphenIndex..$lastIndex]
 
 
 #Replace extra spaces with one space and split them by the space between them.
@@ -75,9 +76,9 @@ $Global:wingetList = $Global:wingetCsv | ConvertFrom-Csv
 
 
 #Prints the winget list but now with properties.
-Write-Output '
-     Command: $wingetList         NOTE: Also available $wingetCsv'
 $Global:wingetList
+#Prints help message
+Write-Output "`n`tCommand: `$wingetList`tNOTE: Also available `$wingetCsv`n"
 
 
 #END of the script

@@ -127,7 +127,7 @@ function Format-Log ([array] $logArray)
 
 
 #Get last created winget log.
-$logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\WinGet*" |
+$logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\WinGet-*" |
             Sort-Object CreationTime | Select-Object -ExpandProperty FullName -Last 1)
 
 
@@ -140,7 +140,7 @@ $logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8
 
 
 #Save content to file
-New-Item -Path "$logFile.bak" -Value $logContent -ItemType File
+# logContent | Out-File -FilePath "$logFile.bak"
 
 #Uncomment this line to count the number of matches produced.
 # Debug-NumberOfMatches -logArray $logContent
@@ -151,7 +151,7 @@ $logContent = Format-Log $logContent
 #The file is created or overwritten with the new content from the logContent variable.
 Set-Content $logFile -Value $logContent
 
-Write-Host "`nOpening formatted log .txt file."
+Write-Host "`nOpening formatted log .txt file.`n"
 #Opens the file.
 Invoke-Item $logFile
 
