@@ -23,8 +23,7 @@ $Global:arpCU64Programs = (Get-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\Cu
                             Select-Object -ExpandProperty PSChildName)
 
 #Add all the ARP with the new property to a single variable for later.
-$Global:arpALLPrograms = $Global:arpLM64Programs + $Global:arpLM86Programs + $Global:arpCU64Programs
-$Global:arpALLPrograms = $Global:arpALLPrograms | Sort-Object Name -Unique
+$Global:arpALLPrograms = $Global:arpLM64Programs + $Global:arpLM86Programs + $Global:arpCU64Programs | Sort-Object -Unique
 
 
 
@@ -42,8 +41,8 @@ $Global:msixPrograms = (Get-AppxPackage -PackageTypeFilter Main |
 #List for all programs to be sorted in ASCII.
 $Global:allPrograms = [System.Collections.ArrayList]::new()
 
-#For some inexplicable reason only when you add one by one the items it can sort correctly in ASCII.
-foreach($prog in (($Global:arpALLPrograms | Where-Object Type -eq Program).Name + $Global:msixPrograms))
+#For some reason only when you add one by one the items it can sort correctly in ASCII.
+foreach($prog in ($Global:arpALLPrograms + $Global:msixPrograms))
 {
     $Global:allPrograms.Add($prog) > $null
 }
