@@ -12,54 +12,48 @@
 function Debug-NumberOfMatches ([array] $logArray)
 {
     #Debug variables
-    $Stepping_statement = $Statement_has = $_savepoint = $SAVEPOINT = $ROLLBACK = $RELEASE = $_TABLE = $Reset_statement = $_INDEX = $Setting_action = 0
+    $Stepping = $Statement_has = $_savepoint = $SAVEPOINT = $ROLLBACK = $RELEASE = $_TABLE = $Reset = $_INDEX = $Setting = 0
     
-    $_arrow_ = $SELECT_rowid = $SELECT_other = $INSERT = $UPDATE = $DELETE = $insert_replace = $select_value = 0
+    $_arrow_ = $SELECT = $INSERT = $UPDATE = $DELETE = 0
 
     #Here the matches will be count.
     for ($i = 0; $i -lt $logArray.Length; $i++)
     {
-            if ($logArray[$i] -cmatch '^Stepping statement #\d+(-\d+)?$') {  $Stepping_statement }
-        elseif ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has') {  $Statement_has }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+savepoint:') {  $_savepoint }
-        elseif ($logArray[$i] -cmatch '^SAVEPOINT') {  $SAVEPOINT }
-        elseif ($logArray[$i] -cmatch '^ROLLBACK') {  $ROLLBACK }
-        elseif ($logArray[$i] -cmatch '^RELEASE') {  $RELEASE }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+TABLE') {  $_TABLE }
-        elseif ($logArray[$i] -cmatch '^Reset statement #\d+(-\d+)?$') {  $Reset_statement }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+INDEX') {  $_INDEX }
-        elseif ($logArray[$i] -cmatch '^Setting action:') {  $Setting_action }
+            if ($logArray[$i] -cmatch '^Stepping statement #\d+(-\d+)?$') { $Stepping++ }
+        elseif ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has') { $Statement_has++ }
+        elseif ($logArray[$i] -cmatch '^(\w+ )+savepoint:') { $_savepoint++ }
+        elseif ($logArray[$i] -cmatch '^SAVEPOINT') { $SAVEPOINT++ }
+        elseif ($logArray[$i] -cmatch '^ROLLBACK') { $ROLLBACK++ }
+        elseif ($logArray[$i] -cmatch '^RELEASE') { $RELEASE++ }
+        elseif ($logArray[$i] -cmatch '^(\w+ )+TABLE') { $_TABLE++ }
+        elseif ($logArray[$i] -cmatch '^Reset statement #\d+(-\d+)?$') { $Reset++ }
+        elseif ($logArray[$i] -cmatch '^(\w+ )+INDEX') { $_INDEX++ }
+        elseif ($logArray[$i] -cmatch '^Setting action:') { $Setting++ }
 
-        elseif ($logArray[$i] -cmatch '^\d+ =>') {  $_arrow_++ }
-        elseif ($logArray[$i] -cmatch '^SELECT \[rowid\]') {  $SELECT_rowid++ }
-        elseif ($logArray[$i] -cmatch '^SELECT (\[(?!rowid)|COUNT)') {  $SELECT_other++ }
-        elseif ($logArray[$i] -cmatch '^INSERT') {  $INSERT++ }
-        elseif ($logArray[$i] -cmatch '^UPDATE') {  $UPDATE++ }
-        elseif ($logArray[$i] -cmatch '^DELETE') {  $DELETE++ }
-        elseif ($logArray[$i] -cmatch '^insert or replace') {  $insert_replace++ }
-        elseif ($logArray[$i] -cmatch '^select \[value\]') {  $select_value++ }
+        elseif ($logArray[$i] -match '^\d+ =>') { $_arrow_++ }
+        elseif ($logArray[$i] -match '^SELECT') { $SELECT++ }
+        elseif ($logArray[$i] -match '^INSERT') { $INSERT++ }
+        elseif ($logArray[$i] -match '^UPDATE') { $UPDATE++ }
+        elseif ($logArray[$i] -match '^DELETE') { $DELETE++ }
     }
 
     Write-Output "
-    `r`$Stepping_statement: $Stepping_statement
+    `r`$Stepping: $Stepping
     `r`$Statement_has: $Statement_has
     `r`$_savepoint: $_savepoint
     `r`$SAVEPOINT: $SAVEPOINT
     `r`$ROLLBACK: $ROLLBACK
     `r`$RELEASE: $RELEASE
     `r`$_TABLE: $_TABLE
-    `r`$Reset_statement: $Reset_statement
+    `r`$Reset: $Reset
     `r`$_INDEX: $_INDEX
-    `r`$Setting_action: $Setting_action
+    `r`$Setting: $Setting
 
     `r`$_arrow_: $_arrow_
-    `r`$SELECT_rowid: $SELECT_rowid
-    `r`$SELECT_other: $SELECT_other
+    `r`$SELECT: $SELECT
     `r`$INSERT: $INSERT
-    `r`$insert_replace: $insert_replace
     `r`$UPDATE: $UPDATE
     `r`$DELETE: $DELETE
-    `r`$select_value: $select_value
     "
 }
 
@@ -87,14 +81,11 @@ function Format-Log ([array] $logArray)
         #Here is the fun part where a lot of data will not get to the final file, some will be joined with another line
         #to generate less lines overall and some will be replaced by shorted version from their original lines.
         #Comment lines at your consideration.
-        if ($logArray[$i] -cmatch '^\d+ =>') { continue }
-        if ($logArray[$i] -cmatch '^SELECT \[rowid\]') { $logArrayReturn += $logArray[$i] -replace '^SELECT.+WHERE (\[\w+\]).+',"`$1 $($logArray[($i+1)] -replace '^\d+ =>','=')"; continue }
-        if ($logArray[$i] -cmatch '^SELECT (\[(?!rowid)|COUNT)') { continue }
-        if ($logArray[$i] -cmatch '^INSERT') { continue }
-        if ($logArray[$i] -cmatch '^UPDATE') { $logArrayReturn += $logArray[$i] -replace '^UPDATE.+SET (\[\w+\]).+',"`$1 $($logArray[($i+1)]-replace '^\d+ =>','=')"; continue }
-        if ($logArray[$i] -cmatch '^DELETE') { continue }
-        if ($logArray[$i] -cmatch '^insert or replace') {  continue }
-        if ($logArray[$i] -cmatch '^select \[value\]') { continue }
+        if ($logArray[$i] -match '^\d+ =>') { continue }
+        if ($logArray[$i] -match '^SELECT') { continue }
+        if ($logArray[$i] -match '^INSERT') { continue }
+        if ($logArray[$i] -match '^UPDATE') { continue }
+        if ($logArray[$i] -match '^DELETE') { continue }
 
         #Every line that does not match any string will be passed as the semi-original line.
         $logArrayReturn += $logArray[$i]
@@ -121,7 +112,7 @@ $logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8
 #And remove words followed by a hashtag and numbers if exists.
 [array] $logContent = Get-Content $logFile |
                       Where-Object { $_ -match '^\d{4}' } |
-                      ForEach-Object { $_ -replace '^.{31}((\w+ )+#\d+: )?','' }
+                      ForEach-Object { $_ -replace '^.{31}((\w+ )+#\d+(-\d+)?: )?','' }
 
 
 #Save content to file
