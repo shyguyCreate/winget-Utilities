@@ -8,17 +8,16 @@
 
 #################### Fuctions ############################
 
-#ONLY for debug
 function Debug-NumberOfMatches ([array] $logArray)
 {
-    $Stepping = $Statement_has = $_savepoint = $SAVEPOINT = $ROLLBACK = $RELEASE = $_TABLE = $Reset = $_INDEX = $Setting = 0
-    $_arrow_ = $SELECT = $INSERT = $UPDATE = $DELETE = 0
+    $_statement_ = $Statement_has = $_savepoint = $SAVEPOINT = $ROLLBACK = $RELEASE = $CREATE = $DROP = $Setting = 0
+    $_arrow_ = $SELECT = $INSERT = $UPDATE = $DELETE = $ALTER = 0
 
     for ($i = 0; $i -lt $logArray.Length; $i++)
     {
-            if ($logArray[$i] -cmatch '^Stepping statement #\d+(-\d+)?$') { $Stepping++ }
-        elseif ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has') { $Statement_has++ }
-        elseif ($logArray[$i] -match '^\d+ =>') { $_arrow_++ }
+            if ($logArray[$i] -cmatch '^\w+ statement #\d+(-\d+)?$') { $_statement_++ }
+        elseif ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has \w+$') { $Statement_has++ }
+        elseif ($logArray[$i] -cmatch '^\d+ =>') { $_arrow_++ }
         elseif ($logArray[$i] -match '^SELECT') { $SELECT++ }
         elseif ($logArray[$i] -cmatch '^(\w+ )+savepoint:') { $_savepoint++ }
         elseif ($logArray[$i] -cmatch '^SAVEPOINT') { $SAVEPOINT++ }
@@ -26,15 +25,15 @@ function Debug-NumberOfMatches ([array] $logArray)
         elseif ($logArray[$i] -cmatch '^RELEASE') { $RELEASE++ }
         elseif ($logArray[$i] -match '^INSERT') { $INSERT++ }
         elseif ($logArray[$i] -match '^UPDATE') { $UPDATE++ }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+TABLE') { $_TABLE++ }
-        elseif ($logArray[$i] -cmatch '^Reset statement #\d+(-\d+)?$') { $Reset++ }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+INDEX') { $_INDEX++ }
+        elseif ($logArray[$i] -cmatch '^CREATE') { $CREATE++ }
+        elseif ($logArray[$i] -cmatch '^DROP') { $DROP++ }
         elseif ($logArray[$i] -match '^DELETE') { $DELETE++ }
         elseif ($logArray[$i] -cmatch '^Setting action:') { $Setting++ }
+        elseif ($logArray[$i] -cmatch '^ALTER') { $ALTER++ }
     }
 
     Write-Output "
-    `r`$Stepping: $Stepping
+    `r`$_statement_: $_statement_
     `r`$Statement_has: $Statement_has
     `r`$_arrow_: $_arrow_
     `r`$SELECT: $SELECT
@@ -44,11 +43,11 @@ function Debug-NumberOfMatches ([array] $logArray)
     `r`$RELEASE: $RELEASE
     `r`$INSERT: $INSERT
     `r`$UPDATE: $UPDATE
-    `r`$_TABLE: $_TABLE
-    `r`$Reset: $Reset
-    `r`$_INDEX: $_INDEX
+    `r`$CREATE: $CREATE
+    `r`$DROP: $DROP
     `r`$DELETE: $DELETE
     `r`$Setting: $Setting
+    `r`$ALTER: $ALTER
     "
 }
 
@@ -59,8 +58,8 @@ function Format-Log ([array] $logArray)
 
     for ($i = 0; $i -lt $logArray.Length; $i++)
     {
-        if ($logArray[$i] -cmatch '^Stepping statement #\d+(-\d+)?$') { continue }
-        if ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has') { continue }
+        if ($logArray[$i] -cmatch '^\w+ statement #\d+(-\d+)?$') { continue }
+        if ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has \w+$') { continue }
         if ($logArray[$i] -match '^\d+ =>') { continue }
         if ($logArray[$i] -match '^SELECT') { continue }
         if ($logArray[$i] -cmatch '^(\w+ )+savepoint:') { continue }
@@ -69,11 +68,11 @@ function Format-Log ([array] $logArray)
         if ($logArray[$i] -cmatch '^RELEASE') { continue }
         if ($logArray[$i] -match '^INSERT') { continue }
         if ($logArray[$i] -match '^UPDATE') { continue }
-        if ($logArray[$i] -cmatch '^(\w+ )+TABLE') { continue }
-        if ($logArray[$i] -cmatch '^Reset statement #\d+(-\d+)?$') { continue }
-        if ($logArray[$i] -cmatch '^(\w+ )+INDEX') { continue }
+        if ($logArray[$i] -cmatch '^CREATE') { continue }
+        if ($logArray[$i] -cmatch '^DROP') { continue }
         if ($logArray[$i] -match '^DELETE') { continue }
         if ($logArray[$i] -cmatch '^Setting action:') { continue }
+        if ($logArray[$i] -match '^ALTER') { continue }
 
         #Every line that does not match any string will be passed to the file.
         $logArrayReturn += $logArray[$i]
