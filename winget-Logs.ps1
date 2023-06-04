@@ -32,24 +32,24 @@ function Debug-NumberOfMatches ([array] $logArray)
         if ($logArray[$i] -match '^Statement #\d+ has completed$') {  $Statement_has_completed++;  continue; }
         if ($logArray[$i] -match '^Statement #\d+ has data$') {  $Statement_has_data++;  continue; }
         if ($logArray[$i] -match '^(\w+ )+savepoint:') {  $_savepoint++;  continue; }
-        if ($logArray[$i].StartsWith('SAVEPOINT')) {  $SAVEPOINT++;  continue; }
-        if ($logArray[$i].StartsWith('ROLLBACK')) {  $ROLLBACK++;  continue; }
-        if ($logArray[$i].StartsWith('RELEASE')) {  $RELEASE++;  continue; }
+        if ($logArray[$i] -cmatch '^SAVEPOINT') {  $SAVEPOINT++;  continue; }
+        if ($logArray[$i] -cmatch '^ROLLBACK') {  $ROLLBACK++;  continue; }
+        if ($logArray[$i] -cmatch '^RELEASE') {  $RELEASE++;  continue; }
         if ($logArray[$i] -cmatch '^(\w+ )+TABLE') {  $_TABLE++;  continue; }
         if ($logArray[$i] -match '^Reset statement #\d+$') {  $Reset_statement++;  continue; }
         if ($logArray[$i] -cmatch '^(\w+ )+INDEX') {  $_INDEX++;  continue; }
-        if ($logArray[$i].StartsWith('Setting action:')) {  $Setting_action++;  continue; }
+        if ($logArray[$i] -cmatch '^Setting action:') {  $Setting_action++;  continue; }
 
         #Second part
         if ($logArray[$i] -cmatch '^\d+ =>') {  $_arrow_++; continue; }
         if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\]) ') {  $SELECT_WHERE++; continue; }
         if ($logArray[$i] -match '^INSERT') {  $INSERT++; continue; }
-        if ($logArray[$i].StartsWith('SELECT COUNT')) {  $SELECT_COUNT++; continue; }
+        if ($logArray[$i] -cmatch '^SELECT COUNT') {  $SELECT_COUNT++; continue; }
         if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\])\.') {  $SELECT_WHERE_++; continue; }
-        if ($logArray[$i].StartsWith('UPDATE')) {  $UPDATE++; continue; }
-        if ($logArray[$i].StartsWith('DELETE')) {  $DELETE++; continue; }
-        if ($logArray[$i].EndsWith('ORDER BY [t].[sort]')) {  $ORDER_BY++; continue; }
-        if ($logArray[$i].StartsWith('select [value]')) {  $select_value++; continue; }
+        if ($logArray[$i] -cmatch '^UPDATE') {  $UPDATE++; continue; }
+        if ($logArray[$i] -cmatch '^DELETE') {  $DELETE++; continue; }
+        if ($logArray[$i] -cmatch 'ORDER BY [t].[sort]$') {  $ORDER_BY++; continue; }
+        if ($logArray[$i] -cmatch '^select [value]') {  $select_value++; continue; }
     }
 
     Write-Output "
@@ -91,13 +91,13 @@ function Format-Log ([array] $logArray)
         if ($logArray[$i] -match '^Statement #\d+ has completed$') { continue; }
         if ($logArray[$i] -match '^Statement #\d+ has data$') { continue; }
         if ($logArray[$i] -match '^(\w+ )+savepoint:') { continue; }
-        if ($logArray[$i].StartsWith('SAVEPOINT')) { continue; }
-        if ($logArray[$i].StartsWith('ROLLBACK')) { continue; }
-        if ($logArray[$i].StartsWith('RELEASE')) { continue; }
+        if ($logArray[$i] -cmatch '^SAVEPOINT') { continue; }
+        if ($logArray[$i] -cmatch '^ROLLBACK') { continue; }
+        if ($logArray[$i] -cmatch '^RELEASE') { continue; }
         if ($logArray[$i] -cmatch '^(\w+ )+TABLE') { continue; }
         if ($logArray[$i] -match '^Reset statement #\d+$') { continue; }
         if ($logArray[$i] -cmatch '^(\w+ )+INDEX') { continue; }
-        if ($logArray[$i].StartsWith('Setting action:')) { continue; }
+        if ($logArray[$i] -cmatch '^Setting action:') { continue; }
 
         #Here is the fun part where a lot of data will not get to the final file, some will be joined with another line
         #to generate less lines overall and some will be replaced by shorted version from their original lines.
@@ -105,12 +105,12 @@ function Format-Log ([array] $logArray)
         if ($logArray[$i] -cmatch '^\d+ =>') { continue; }
         if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\]) ') { $logArrayReturn += $logArray[$i] -replace '^SELECT.+WHERE (\[\w+\]).+',"`$1 $($logArray[($i+1)] -replace '^\d+ =>','=')"; continue; }
         if ($logArray[$i] -match '^INSERT') { continue; }
-        if ($logArray[$i].StartsWith('SELECT COUNT')) { continue; }
+        if ($logArray[$i] -cmatch '^SELECT COUNT') { continue; }
         if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\])\.') { continue; }
-        if ($logArray[$i].StartsWith('UPDATE')) { $logArrayReturn += $logArray[$i] -replace '^UPDATE.+SET (\[\w+\]).+',"`$1 $($logArray[($i+1)]-replace '^\d+ =>','=')"; continue; }
-        if ($logArray[$i].StartsWith('DELETE')) { continue; }
-        if ($logArray[$i].EndsWith('ORDER BY [t].[sort]')) { continue; }
-        if ($logArray[$i].StartsWith('select [value]')) { continue; }
+        if ($logArray[$i] -cmatch '^UPDATE') { $logArrayReturn += $logArray[$i] -replace '^UPDATE.+SET (\[\w+\]).+',"`$1 $($logArray[($i+1)]-replace '^\d+ =>','=')"; continue; }
+        if ($logArray[$i] -cmatch '^DELETE') { continue; }
+        if ($logArray[$i] -cmatch 'ORDER BY [t].[sort]$') { continue; }
+        if ($logArray[$i] -cmatch '^select [value]') { continue; }
 
         #Every line that does not match any string will be passed as the semi-original line.
         $logArrayReturn += $logArray[$i]
