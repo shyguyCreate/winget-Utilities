@@ -27,29 +27,27 @@ function Debug-NumberOfMatches ([array] $logArray)
     #Here the matches will be count.
     for ($i = 0; $i -lt $logArray.Length; $i++)
     {
-        #First part
-        if ($logArray[$i] -match '^Stepping statement #\d+$') {  $Stepping_statement++;  continue; }
-        if ($logArray[$i] -match '^Statement #\d+ has completed$') {  $Statement_has_completed++;  continue; }
-        if ($logArray[$i] -match '^Statement #\d+ has data$') {  $Statement_has_data++;  continue; }
-        if ($logArray[$i] -match '^(\w+ )+savepoint:') {  $_savepoint++;  continue; }
-        if ($logArray[$i] -cmatch '^SAVEPOINT') {  $SAVEPOINT++;  continue; }
-        if ($logArray[$i] -cmatch '^ROLLBACK') {  $ROLLBACK++;  continue; }
-        if ($logArray[$i] -cmatch '^RELEASE') {  $RELEASE++;  continue; }
-        if ($logArray[$i] -cmatch '^(\w+ )+TABLE') {  $_TABLE++;  continue; }
-        if ($logArray[$i] -match '^Reset statement #\d+$') {  $Reset_statement++;  continue; }
-        if ($logArray[$i] -cmatch '^(\w+ )+INDEX') {  $_INDEX++;  continue; }
-        if ($logArray[$i] -cmatch '^Setting action:') {  $Setting_action++;  continue; }
+            if ($logArray[$i] -match '^Stepping statement #\d+$') {  $Stepping_statement++; }
+        elseif ($logArray[$i] -match '^Statement #\d+ has completed$') {  $Statement_has_completed++; }
+        elseif ($logArray[$i] -match '^Statement #\d+ has data$') {  $Statement_has_data++; }
+        elseif ($logArray[$i] -match '^(\w+ )+savepoint:') {  $_savepoint++; }
+        elseif ($logArray[$i] -cmatch '^SAVEPOINT') {  $SAVEPOINT++; }
+        elseif ($logArray[$i] -cmatch '^ROLLBACK') {  $ROLLBACK++; }
+        elseif ($logArray[$i] -cmatch '^RELEASE') {  $RELEASE++; }
+        elseif ($logArray[$i] -cmatch '^(\w+ )+TABLE') {  $_TABLE++; }
+        elseif ($logArray[$i] -match '^Reset statement #\d+$') {  $Reset_statement++; }
+        elseif ($logArray[$i] -cmatch '^(\w+ )+INDEX') {  $_INDEX++; }
+        elseif ($logArray[$i] -cmatch '^Setting action:') {  $Setting_action++; }
 
-        #Second part
-        if ($logArray[$i] -cmatch '^\d+ =>') {  $_arrow_++; continue; }
-        if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\]) ') {  $SELECT_WHERE++; continue; }
-        if ($logArray[$i] -match '^INSERT') {  $INSERT++; continue; }
-        if ($logArray[$i] -cmatch '^SELECT COUNT') {  $SELECT_COUNT++; continue; }
-        if ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\])\.') {  $SELECT_WHERE_++; continue; }
-        if ($logArray[$i] -cmatch '^UPDATE') {  $UPDATE++; continue; }
-        if ($logArray[$i] -cmatch '^DELETE') {  $DELETE++; continue; }
-        if ($logArray[$i] -cmatch 'ORDER BY [t].[sort]$') {  $ORDER_BY++; continue; }
-        if ($logArray[$i] -cmatch '^select [value]') {  $select_value++; continue; }
+        elseif ($logArray[$i] -cmatch '^\d+ =>') {  $_arrow_++ }
+        elseif ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\]) ') {  $SELECT_WHERE++ }
+        elseif ($logArray[$i] -match '^INSERT') {  $INSERT++ }
+        elseif ($logArray[$i] -cmatch '^SELECT COUNT') {  $SELECT_COUNT++ }
+        elseif ($logArray[$i] -cmatch '^SELECT \[.+WHERE (\[\w+\])\.') {  $SELECT_WHERE_++ }
+        elseif ($logArray[$i] -cmatch '^UPDATE') {  $UPDATE++ }
+        elseif ($logArray[$i] -cmatch '^DELETE') {  $DELETE++ }
+        elseif ($logArray[$i] -cmatch 'ORDER BY [t].[sort]$') {  $ORDER_BY++ }
+        elseif ($logArray[$i] -cmatch '^select [value]') {  $select_value++ }
     }
 
     Write-Output "
