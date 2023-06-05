@@ -9,11 +9,10 @@
 #Path to a temp file.
 $tmpFilePath = New-TemporaryFile
 
-#Sends [winget list] to a file with special enconding, so that it doesn't mess with special characters.
+#Sends [winget list] to a file with special enconding to not mess with special characters.
 Out-File -FilePath $tmpFilePath -InputObject (winget list -s winget) -Encoding Oem -Force
 
-#Gets the content of the file in UTF8 so that it doesn't changes accents and other special characters
-#And skips the first two lines which are some sort of loading process.
+#Gets the content of the file in UTF8 to not mess with special characters
 $tmpFileContent = Get-Content -Path $tmpFilePath -Encoding UTF8
 
 #Delete temp file
@@ -31,12 +30,10 @@ while ($tmpFileContent[$hyphenIndex] -notmatch ("^-+$"))
 $propertiesIndex = $hyphenIndex - 1
 #Go one index forward to skip the hyphens line.
 $skipHyphenIndex = $hyphenIndex + 1
-#Get number of lines in the file.
-$lastIndex = $tmpFileContent.Length - 1
 
-#Saves the Properties line to later add everything below except for the hyphen line.
+#Saves the Properties line to later add everything below the hyphen line.
 [array] $newContent = $tmpFileContent[$propertiesIndex]
-$newContent += $tmpFileContent[$skipHyphenIndex..$lastIndex]
+$newContent += $tmpFileContent[$skipHyphenIndex..-1]
 
 
 #Replace extra spaces with one space and split them by the space between them.
@@ -51,34 +48,25 @@ for ($i = 1; $i -lt $propetyNames.Count; $i++)
 }
 
 
-
 [array] $Global:wingetList = @()
-[array] $Global:wingetCsv = @()
 
+#Changes the character before the Property name to a comma and removes the spaces before the comma.
 foreach ($line in $newContent)
 {
-    #Changes the character before the Property name to a comma, except the first Property.
-    #And repeats the process foreach line.
     foreach($index in $indexes)
     {
-        $line = $line.Remove($index,1).Insert($index,",")
+        $Global:wingetList += $line.Remove($index,1).Insert($index,",") -replace '\s+,',','
     }
-
-    #Removes the spaces between the program and the comma.
-    $line = $line -replace '\s+,', ','
-
-    #It adds all the modifications to a variable to be later use to fill a .txt file.
-    $Global:wingetCsv += $line
 }
 
 #Convert the Csv to Properties, and name each Property by the first line found in the list.
-$Global:wingetList = $Global:wingetCsv | ConvertFrom-Csv
+$Global:wingetList = $Global:wingetList | ConvertFrom-Csv
 
 
 #Prints the winget list but now with properties.
 $Global:wingetList
 #Prints help message
-Write-Output "`n`tCommand: `$wingetList`tNOTE: Also available `$wingetCsv`n"
+Write-Output "`n`tCommand: `$wingetList"
 
 
 #END of the script

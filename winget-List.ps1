@@ -8,7 +8,6 @@
 
 ######################## For ARP entries ########################
 
-#List for each ARP path.
 $Global:arpLM64Programs = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" |
                             Where-Object SystemComponent -ne 1 |
                             Where-Object DisplayName -ne $null |
@@ -36,7 +35,7 @@ $Global:msixPrograms = (Get-AppxPackage -PackageTypeFilter Main |
 
 
 
-######################## For Winget List Command ########################
+######################## Output as Winget List Command ########################
 
 #List for all programs to be sorted in ASCII.
 $Global:allPrograms = [System.Collections.ArrayList]::new()
@@ -52,7 +51,6 @@ $Global:allPrograms.Sort([System.StringComparer]::Ordinal)
 
 
 ######################## Send Results to Console ########################
-
 
 Write-Output "`nARP entries for Machine | X64`n"
 Write-Output $Global:arpLM64Programs
