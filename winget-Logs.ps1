@@ -6,86 +6,6 @@
 #----------------------------------------------------------
 
 
-#################### Fuctions ############################
-
-function Debug-NumberOfMatches ([array] $logArray)
-{
-    $_statement_ = $Statement_has = $_savepoint = $SAVEPOINT = $ROLLBACK = $RELEASE = $CREATE = $DROP = $Setting = 0
-    $_arrow_ = $SELECT = $INSERT = $UPDATE = $DELETE = $ALTER = 0
-
-    for ($i = 0; $i -lt $logArray.Length; $i++)
-    {
-            if ($logArray[$i] -cmatch '^\w+ statement #\d+(-\d+)?$') { $_statement_++ }
-        elseif ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has \w+$') { $Statement_has++ }
-        elseif ($logArray[$i] -cmatch '^\d+ =>') { $_arrow_++ }
-        elseif ($logArray[$i] -match '^SELECT') { $SELECT++ }
-        elseif ($logArray[$i] -cmatch '^(\w+ )+savepoint:') { $_savepoint++ }
-        elseif ($logArray[$i] -cmatch '^SAVEPOINT') { $SAVEPOINT++ }
-        elseif ($logArray[$i] -cmatch '^ROLLBACK') { $ROLLBACK++ }
-        elseif ($logArray[$i] -cmatch '^RELEASE') { $RELEASE++ }
-        elseif ($logArray[$i] -match '^INSERT') { $INSERT++ }
-        elseif ($logArray[$i] -match '^UPDATE') { $UPDATE++ }
-        elseif ($logArray[$i] -cmatch '^CREATE') { $CREATE++ }
-        elseif ($logArray[$i] -cmatch '^DROP') { $DROP++ }
-        elseif ($logArray[$i] -match '^DELETE') { $DELETE++ }
-        elseif ($logArray[$i] -cmatch '^Setting action:') { $Setting++ }
-        elseif ($logArray[$i] -cmatch '^ALTER') { $ALTER++ }
-    }
-
-    Write-Output "
-    `r`$_statement_: $_statement_
-    `r`$Statement_has: $Statement_has
-    `r`$_arrow_: $_arrow_
-    `r`$SELECT: $SELECT
-    `r`$_savepoint: $_savepoint
-    `r`$SAVEPOINT: $SAVEPOINT
-    `r`$ROLLBACK: $ROLLBACK
-    `r`$RELEASE: $RELEASE
-    `r`$INSERT: $INSERT
-    `r`$UPDATE: $UPDATE
-    `r`$CREATE: $CREATE
-    `r`$DROP: $DROP
-    `r`$DELETE: $DELETE
-    `r`$Setting: $Setting
-    `r`$ALTER: $ALTER
-    "
-}
-
-
-function Format-Log ([array] $logArray)
-{
-    [array] $logArrayReturn = @()
-
-    for ($i = 0; $i -lt $logArray.Length; $i++)
-    {
-        if ($logArray[$i] -cmatch '^\w+ statement #\d+(-\d+)?$') { continue }
-        if ($logArray[$i] -cmatch '^Statement #\d+(-\d+)? has \w+$') { continue }
-        if ($logArray[$i] -match '^\d+ =>') { continue }
-        if ($logArray[$i] -match '^SELECT') { continue }
-        if ($logArray[$i] -cmatch '^(\w+ )+savepoint:') { continue }
-        if ($logArray[$i] -cmatch '^SAVEPOINT') { continue }
-        if ($logArray[$i] -cmatch '^ROLLBACK') { continue }
-        if ($logArray[$i] -cmatch '^RELEASE') { continue }
-        if ($logArray[$i] -match '^INSERT') { continue }
-        if ($logArray[$i] -match '^UPDATE') { continue }
-        if ($logArray[$i] -cmatch '^CREATE') { continue }
-        if ($logArray[$i] -cmatch '^DROP') { continue }
-        if ($logArray[$i] -match '^DELETE') { continue }
-        if ($logArray[$i] -cmatch '^Setting action:') { continue }
-        if ($logArray[$i] -match '^ALTER') { continue }
-
-        #Every line that does not match any string will be passed to the file.
-        $logArrayReturn += $logArray[$i]
-    }
-    return $logArrayReturn | Where-Object { $_ -ne '' }
-}
-
-
-
-# ============================================================================================
-
-################################# Start Main Program #########################################
-
 #Create log file in verbose mode
 winget list -s winget --verbose-logs > $null
 
@@ -94,26 +14,15 @@ $logFile = (Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8
             Sort-Object CreationTime | Select-Object -ExpandProperty FullName -Last 1)
 
 
-#Get log lines only if it starts with a 4 digit number.
-#And remove words followed by a hashtag and numbers if exists.
-[array] $logContent = Get-Content $logFile |
-                      Where-Object { $_ -match '^\d{4}' } |
-                      ForEach-Object { $_ -replace '^.{31}((\w+ )+#\d+(-\d+)?: )?','' }
+#Get log lines only if it has date and it is not [SQL ].
+#And remove time and [XXXX] at the beggining of each line.
+Get-Content $logFile |
+Where-Object { $_ -match '^.{24}\[(?!SQL)' } |
+ForEach-Object { $_ -replace '^.{31}','' } |
+Out-File -FilePath $logFile
 
 
-#Save content to file
-# logContent | Out-File -FilePath "$logFile.bak"
-
-#Uncomment this line to count the number of matches produced.
-# Debug-NumberOfMatches $logContent
-
-#Here many of the lines will be removed or change to make the log file more understandable.
-$logContent = Format-Log $logContent
-
-#The file is created or overwritten with the new content from the logContent variable.
-Set-Content $logFile -Value $logContent
-
-Write-Host "`nOpening formatted log .txt file.`n"
+Write-Host "`nOpening formatted .log file.`n"
 #Opens the file.
 Invoke-Item $logFile
 
